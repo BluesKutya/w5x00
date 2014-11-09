@@ -99,6 +99,7 @@
 #define SOCK_MACL_RAW		0x42		// mac raw mode socket
 #define SOCK_PPPOE			0x5F		// pppoe socket
 
+#ifndef IPPROTO_IP
 /* IP PROTOCOL */
 #define IPPROTO_IP		0           /* Dummy for IP */
 #define IPPROTO_ICMP	1           /* Control message protocol */
@@ -110,6 +111,7 @@
 #define IPPROTO_IDP		22          /* XNS idp */
 #define IPPROTO_ND		77          /* UNOFFICIAL net disk protocol */
 #define IPPROTO_RAW		255         /* Raw IP packet */
+#endif
 
 /* 
  * socket registers.

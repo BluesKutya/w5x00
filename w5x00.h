@@ -29,10 +29,10 @@
 
 #include "regs.h"
 
-#define W5X00_DEFAULT_PIN_RESET      15
-#define W5X00_DEFAULT_PIN_INTERRUPT  17
+#define W5X00_DEFAULT_PIN_RESET      27
+#define W5X00_DEFAULT_PIN_INTERRUPT  18
 #define W5X00_DEFAULT_SELECT         0
-#define W5X00_DEFAULT_MAC            {0x00, 0x08, 0xDC, 0x91, 0x97, 0x98}
+#define W5X00_DEFAULT_MAC            {0xa4, 0x50, 0x55, 0x91, 0x97, 0x98}
 
 #define SPI_BURST_SIZE	28			// Read/Write Burst Size (For spi_write_then_read)
 

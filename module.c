@@ -87,12 +87,12 @@ static int w5x00_remove(struct spi_device *spi)
 
 static struct spi_driver w5x00_driver = {
 	.driver = {
-		.name = "w5x00",
+		.name = DRV_NAME,
 		.bus = &spi_bus_type,
 		.owner = THIS_MODULE,
 	},
 	.probe = w5x00_probe,
-	.remove = __devexit_p(w5x00_remove),
+	.remove = w5x00_remove,
 };
 
 
@@ -129,4 +129,5 @@ MODULE_AUTHOR("Olaf Lüke <olaf@tinkerforge.com>");
 MODULE_DESCRIPTION("Support for WIZnet w5x00-based MACRAW Mode.");
 MODULE_SUPPORTED_DEVICE("WIZnet W5X00 Chip");
 MODULE_LICENSE("GPL");
+MODULE_ALIAS("spi:" DRV_NAME);
 
