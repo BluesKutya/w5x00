@@ -92,7 +92,11 @@ static struct spi_driver w5x00_driver = {
 		.owner = THIS_MODULE,
 	},
 	.probe = w5x00_probe,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,8,0)
+	.remove = __devexit_p(w5x00_remove),
+#else
 	.remove = w5x00_remove,
+#endif
 };
 
 
