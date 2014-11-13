@@ -253,9 +253,11 @@ wiznet_drv_create(wiz_t *wz)
 	dev->irq = wz->irq;
 	dev->netdev_ops = &netdev_ops;
 	dev->watchdog_timeo	= 2 * HZ;
-	
+
+#ifndef CONFIG_RPI_EXT	
 	/* override Name */
 	strcpy(dev->name, "wiz%d");
+#endif
 
 	/* register driver */
 	if (register_netdev(dev)) {

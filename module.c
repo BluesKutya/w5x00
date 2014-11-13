@@ -81,8 +81,25 @@ static int w5x00_remove(struct spi_device *spi)
 	/* free irq */
 	wiz_dev_exit(&gDrvInfo);
 
-	spi_device = NULL;
+	spi_device  = NULL;
 	return 0;
+}
+
+static int spi_device_found(struct device *dev, void *data)
+{
+	struct spi_device *spi = container_of(dev, struct spi_device, dev);
+
+	pr_info(DRV_NAME":      %s %s %dkHz %d bits mode=0x%02X\n",
+		spi->modalias, dev_name(dev), spi->max_speed_hz/1000,
+		spi->bits_per_word, spi->mode);
+
+	return 0;
+}
+
+static void pr_spi_devices(void)
+{
+	pr_info(DRV_NAME":  SPI devices registered:\n");
+	bus_for_each_dev(&spi_bus_type, NULL, NULL, spi_device_found);
 }
 
 static struct spi_driver w5x00_driver = {
@@ -99,22 +116,85 @@ static struct spi_driver w5x00_driver = {
 #endif
 };
 
+#ifdef MODULE
+static void wiz_device_spi_delete(struct spi_master *master, unsigned cs) {
+	struct device *dev;
+	char str[32];
+	
+	snprintf(str, sizeof(str), "%s.%u", dev_name(&master->dev), cs);
+
+	dev = bus_find_device_by_name(&spi_bus_type, NULL, str);
+	if (dev) {
+		pr_info(DRV_NAME": Deleting %s\n", str);
+		device_del(dev);
+	}
+}
+
+static int wiz_device_spi_device_register(struct spi_board_info *spi)
+{
+	struct spi_master *master;
+	struct spi_device *spi_dev = NULL;
+
+	
+	master = spi_busnum_to_master(spi->bus_num);
+	if (!master) {
+		pr_err(DRV_NAME":  spi_busnum_to_master(%d) returned NULL\n",
+								spi->bus_num);
+		return -EINVAL;
+	}
+	/* make sure it's available */
+	wiz_device_spi_delete(master, spi->chip_select);
+	spi_dev = spi_new_device(master, spi);
+	put_device(&master->dev);
+	if (!spi_dev) {
+		pr_err(DRV_NAME ":    spi_new_device() returned NULL\n");
+		return -EPERM;
+	}
+	return 0;
+}
+#else
+static int wiz_device_spi_device_register(struct spi_board_info *spi)
+{
+	return spi_register_board_info(spi, 1);
+}
+#endif
 
 static int __init
 wiz_module_init(void)
 {
 	int ret;
-
+	struct spi_board_info *spi = &(struct spi_board_info) {
+		.modalias = DRV_NAME,
+		.max_speed_hz = 26000000,
+		.chip_select = 0,
+		.bus_num = 0,
+		.mode = SPI_MODE_0,
+	};
+	
 	printk(KERN_INFO "%s: %s\n", DRV_NAME, DRV_VERSION);
+
+	pr_spi_devices(); /* print list of registered SPI devices */
+
+	strncpy(spi->modalias, DRV_NAME, SPI_NAME_SIZE);
+	spi->chip_select = param_select;
+	spi->bus_num = 0; // make dynamic ...
+
+	ret = wiz_device_spi_device_register(spi);
+	if (ret) {
+		printk( DRV_NAME": failed to register SPI device\n");
+		return ret;
+	}
 
 	ret = spi_register_driver(&w5x00_driver);
 	if(ret < 0)
 	{
-		printk("w5x00 spi_register_driver failed\n");
+		printk( DRV_NAME": spi_register_driver failed\n");
 		return ret;
 	}
-	else
-		printk("w5x00 spi register succeed\n");
+
+	printk("w5x00 spi register succeed\n");
+
+	pr_spi_devices(); /* print list of registered SPI devices */
 
 	return 0;
 }
@@ -134,4 +214,4 @@ MODULE_DESCRIPTION("Support for WIZnet w5x00-based MACRAW Mode.");
 MODULE_SUPPORTED_DEVICE("WIZnet W5X00 Chip");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("spi:" DRV_NAME);
-
+MODULE_ALIAS("platform:" DRV_NAME);
