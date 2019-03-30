@@ -44,7 +44,9 @@
 
 #include <asm/uaccess.h>
 #include <asm/unaligned.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,4,0)
 #include <asm/system.h>
+#endif
 #include <linux/spinlock.h>
 
 volatile unsigned *_rGPFDAT;
@@ -433,7 +435,7 @@ void w5x00_tx_irq_work(struct work_struct *work)
 			/* update counter */
 			wp->stats.tx_bytes += skb->len;
 			wp->stats.tx_packets++;
-			wz->dev->trans_start = jiffies;
+			//TODO wz->dev->trans_start = jiffies;
 		}
 
 		/* release skb */
@@ -1559,7 +1561,7 @@ int wiz_dev_init(wiz_t *wz)
 	gpio_direction_input(lp->pin_interrupt);
 
 	/* allocate the irq corresponding to the receiving */
-	if (request_irq(wz->irq, iinchip_interrupt, (IRQF_SHARED | IRQF_DISABLED | IRQF_TRIGGER_LOW), "w5x00", (void *) wz)) {
+	if (request_irq(wz->irq, iinchip_interrupt, (IRQF_SHARED | IRQF_TRIGGER_LOW), "w5x00", (void *) wz)) { //TODO IRQF_DISABLED
 		printk("errro request irq(%d)\n", wz->irq);		
 		return -EAGAIN;
 	}
